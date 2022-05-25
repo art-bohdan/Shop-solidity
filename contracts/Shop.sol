@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.0;
 import "./IERC20.sol";
-import "./CustomToken.sol"
+import "./CustomToken.sol";
 
 contract Shop {
     IERC20 public token;
@@ -11,7 +11,7 @@ contract Shop {
     event Sold(uint _amount, address indexed _seller); 
 
     constructor() {
-        token = new CustomToken(address(this));
+        token = new CustomToken(20, address(this));
         owner = payable(msg.sender);
     }
 
@@ -38,12 +38,12 @@ contract Shop {
     }
 
     receive() external payable {
-        uint tokensToBuy = msg.value; // 1 wei = 1 token
+        uint256 tokensToBuy = msg.value; // 1 wei = 1 token
         require(tokensToBuy > 0, "not enough funds!");
 
         require(tokenBalance() >= tokensToBuy, "not enough tokens!");
 
-        token.transfer(msg.sender, tokensToBuy);
+        token.transfer(msg.sender, uint64(tokensToBuy));
         emit Bought(tokensToBuy, msg.sender);
     }
 

@@ -4,25 +4,32 @@ import "./IERC20.sol";
 
 contract ERC20 is IERC20 {
   //Variables
-  uint64 public _totalSupply;
-
-  mapping(address => uint64) public _balanceOf;
-  mapping(address => mapping(address => uint64)) public _allowance;
+  uint256 public _totalSupply;
+  address owner;
+  mapping(address => uint256) public _balanceOf;
+  mapping(address => mapping(address => uint256)) public _allowance;
 
   string public _name;
   string public _symbol;
-  uint8 public _decimals;
+  uint256 public _decimals;
+
+  modifier onlyOwner() {
+    require(msg.sender == owner, "not an owner!");
+    _;
+  }
 
   constructor(
     string memory name_,
     string memory symbol_,
-    uint8 dec,
-    uint64 totalSupply_
+    uint256 dec,
+    uint256 totalSupply_,
+    address shop
   ) {
+    owner = msg.sender;
     _name = name_;
     _symbol = symbol_;
     _decimals = dec;
-    _mint(totalSupply_);
+    _mint(totalSupply_, shop);
   }
 
   //Function
@@ -41,7 +48,7 @@ contract ERC20 is IERC20 {
   }
 
   // returns balances from account address
-  function balanceOf(address account) public view override returns (uint64) {
+  function balanceOf(address account) public view override returns (uint256) {
     return _balanceOf[account];
   }
 
@@ -59,12 +66,12 @@ contract ERC20 is IERC20 {
     return true;
   }
 
-  function totalSupply() public view override returns (uint64) {
+  function totalSupply() public view override returns (uint256) {
     return _totalSupply;
   }
 
-  function allowance(address owner, address spender) external view override returns (uint64) {
-    return _allowance[owner][spender];
+  function allowance(address _owner, address spender) external view override returns (uint256) {
+    return _allowance[_owner][spender];
   }
 
   function transfer(address to, uint64 amount) external override returns (bool) {
@@ -75,7 +82,7 @@ contract ERC20 is IERC20 {
     return true;
   }
 
-  function approve(address spender, uint64 amount) external override returns (bool) {
+  function approve(address spender, uint256 amount) external override returns (bool) {
     require(spender != address(0), "ERC20: approve to the zero address");
     _allowance[msg.sender][spender] = amount;
     emit Approval(msg.sender, spender, amount);
@@ -85,7 +92,7 @@ contract ERC20 is IERC20 {
   function transferFrom(
     address from,
     address to,
-    uint64 amount
+    uint256 amount
   ) external override returns (bool) {
     require(_balanceOf[from] >= amount, "ERC20: not enough funds on account");
     require(_allowance[from][msg.sender] >= amount, "ERC20: not enough allowance funds on account");
@@ -106,13 +113,13 @@ contract ERC20 is IERC20 {
     return true;
   }
 
-  function _mint(uint64 amount) internal {
-    _balanceOf[msg.sender] += amount;
+  function _mint(uint256 amount, address _owner) internal onlyOwner {
+    _balanceOf[_owner] += amount;
     _totalSupply += amount;
-    emit Transfer(address(0), msg.sender, amount);
+    emit Transfer(address(0), _owner, amount);
   }
 
-  function _burn(uint64 amount) external {
+  function _burn(uint256 amount) external {
     require(msg.sender != address(0), "ERC20: burn to the zero address");
     require(_balanceOf[msg.sender] >= amount, "ERC20 not enough funds");
     _balanceOf[msg.sender] -= amount;
