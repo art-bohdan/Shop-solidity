@@ -51,39 +51,25 @@ describe("Shop", function () {
     })
 
     it("Should reverted with not enough funds!", async function () {
-      const tokenAmount = 3
+      const tokenAmount = 0
 
       const txData = {
         value: tokenAmount,
         to: ctx.shop.address
       }
 
-      const tx = await ctx.buyer.sendTransaction(txData)
-      await tx.wait()
-
-      expect(await ctx.erc20.balanceOf(ctx.buyer.address)).to.eq(tokenAmount)
-
-      await expect(() => tx).to.changeEtherBalance(ctx.shop, tokenAmount)
-
-      await expect(tx).to.emit(ctx.shop, "Bought").withArgs(tokenAmount, ctx.buyer.address)
+      await expect(ctx.buyer.sendTransaction(txData)).to.revertedWith("not enough funds!")
     })
 
     it("Should reverted with not enough tokens!", async function () {
-      const tokenAmount = 3
+      const tokenAmount = 25
 
       const txData = {
         value: tokenAmount,
         to: ctx.shop.address
       }
 
-      const tx = await ctx.buyer.sendTransaction(txData)
-      await tx.wait()
-
-      expect(await ctx.erc20.balanceOf(ctx.buyer.address)).to.eq(tokenAmount)
-
-      await expect(() => tx).to.changeEtherBalance(ctx.shop, tokenAmount)
-
-      await expect(tx).to.emit(ctx.shop, "Bought").withArgs(tokenAmount, ctx.buyer.address)
+      await expect(ctx.buyer.sendTransaction(txData)).to.revertedWith("not enough tokens!")
     })
   })
 
