@@ -31,43 +31,107 @@ describe("Shop", function () {
     await expect(await ctx.shop.token()).to.be.properAddress
   })
 
-  it("allows to buy", async function () {
-    const tokenAmount = 3
+  describe("check func buy", () => {
+    it("Should allows to buy", async function () {
+      const tokenAmount = 3
 
-    const txData = {
-      value: tokenAmount,
-      to: ctx.shop.address
-    }
+      const txData = {
+        value: tokenAmount,
+        to: ctx.shop.address
+      }
 
-    const tx = await ctx.buyer.sendTransaction(txData)
-    await tx.wait()
+      const tx = await ctx.buyer.sendTransaction(txData)
+      await tx.wait()
 
-    expect(await ctx.erc20.balanceOf(ctx.buyer.address)).to.eq(tokenAmount)
+      expect(await ctx.erc20.balanceOf(ctx.buyer.address)).to.eq(tokenAmount)
 
-    await expect(() => tx).to.changeEtherBalance(ctx.shop, tokenAmount)
+      await expect(() => tx).to.changeEtherBalance(ctx.shop, tokenAmount)
 
-    await expect(tx).to.emit(ctx.shop, "Bought").withArgs(tokenAmount, ctx.buyer.address)
+      await expect(tx).to.emit(ctx.shop, "Bought").withArgs(tokenAmount, ctx.buyer.address)
+    })
+
+    it("Should reverted with not enough funds!", async function () {
+      const tokenAmount = 3
+
+      const txData = {
+        value: tokenAmount,
+        to: ctx.shop.address
+      }
+
+      const tx = await ctx.buyer.sendTransaction(txData)
+      await tx.wait()
+
+      expect(await ctx.erc20.balanceOf(ctx.buyer.address)).to.eq(tokenAmount)
+
+      await expect(() => tx).to.changeEtherBalance(ctx.shop, tokenAmount)
+
+      await expect(tx).to.emit(ctx.shop, "Bought").withArgs(tokenAmount, ctx.buyer.address)
+    })
+
+    it("Should reverted with not enough tokens!", async function () {
+      const tokenAmount = 3
+
+      const txData = {
+        value: tokenAmount,
+        to: ctx.shop.address
+      }
+
+      const tx = await ctx.buyer.sendTransaction(txData)
+      await tx.wait()
+
+      expect(await ctx.erc20.balanceOf(ctx.buyer.address)).to.eq(tokenAmount)
+
+      await expect(() => tx).to.changeEtherBalance(ctx.shop, tokenAmount)
+
+      await expect(tx).to.emit(ctx.shop, "Bought").withArgs(tokenAmount, ctx.buyer.address)
+    })
   })
 
-  it("allows to sell", async function () {
-    const tx = await ctx.buyer.sendTransaction({
-      value: 3,
-      to: ctx.shop.address
+  describe("check func sell", () => {
+    it("allows to sell", async function () {
+      const tx = await ctx.buyer.sendTransaction({
+        value: 3,
+        to: ctx.shop.address
+      })
+      await tx.wait()
+
+      const sellAmount = 2
+
+      const approval = await ctx.erc20.connect(ctx.buyer).approve(ctx.shop.address, sellAmount)
+
+      await approval.wait()
+
+      const sellTx = await ctx.shop.connect(ctx.buyer).sell(sellAmount)
+
+      expect(await ctx.erc20.balanceOf(ctx.buyer.address)).to.eq(1)
+
+      await expect(() => sellTx).to.changeEtherBalance(ctx.shop, -sellAmount)
+
+      await expect(sellTx).to.emit(ctx.shop, "Sold").withArgs(sellAmount, ctx.buyer.address)
     })
-    await tx.wait()
 
-    const sellAmount = 2
+    it("Should reverted with enough allowance", async () => {
+      const tx = await ctx.buyer.sendTransaction({
+        value: 3,
+        to: ctx.shop.address
+      })
+      await tx.wait()
 
-    const approval = await ctx.erc20.connect(ctx.buyer).approve(ctx.shop.address, sellAmount)
+      const sellAmount = 2
 
-    await approval.wait()
+      await expect(ctx.shop.connect(ctx.buyer).sell(sellAmount)).to.revertedWith("check allowance!")
+    })
 
-    const sellTx = await ctx.shop.connect(ctx.buyer).sell(sellAmount)
+    it("Should reverted with incorrect amount", async () => {
+      const tx = await ctx.buyer.sendTransaction({
+        value: 3,
+        to: ctx.shop.address
+      })
+      await tx.wait()
 
-    expect(await ctx.erc20.balanceOf(ctx.buyer.address)).to.eq(1)
+      const sellAmount = 4
 
-    await expect(() => sellTx).to.changeEtherBalance(ctx.shop, -sellAmount)
-
-    await expect(sellTx).to.emit(ctx.shop, "Sold").withArgs(sellAmount, ctx.buyer.address)
+      await expect(ctx.shop.connect(ctx.buyer).sell(sellAmount)).to.revertedWith("incorrect amount!")
+    })
   })
 })
