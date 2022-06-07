@@ -19,7 +19,7 @@ describe("Token", function () {
   beforeEach(async () => {
     const Token = await ethers.getContractFactory("CustomToken")
     const [deployer, user1, user2, user3, ...users] = await ethers.getSigners()
-    const token = await Token.deploy(2000, deployer.address)
+    const token = await Token.deploy("CustomToken", "CT", 18, 2000, deployer.address)
     ctx = { deployer, token, user1, user2, user3, users }
   })
 

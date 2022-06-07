@@ -1,5 +1,4 @@
-// SPDX-License-Identifier: MIT
-
+//SPDX-License-Identifier: Unlicense
 pragma solidity ^0.8.0;
 import "./IERC20.sol";
 import "./CustomToken.sol";
@@ -10,8 +9,8 @@ contract Shop {
   event Bought(uint256 _amount, address indexed _buyer);
   event Sold(uint256 _amount, address indexed _seller);
 
-  constructor() {
-    token = new CustomToken(20, address(this));
+  constructor(string memory _name, string memory _symbol,uint256 _decimals, uint256 _totalSupply) {
+    token = new CustomToken(_name, _symbol, _decimals, _totalSupply, address(this));
     owner = payable(msg.sender);
   }
 
@@ -39,7 +38,7 @@ contract Shop {
 
     require(tokenBalance() >= tokensToBuy, "not enough tokens!");
 
-    token.transfer(msg.sender, uint64(tokensToBuy));
+    token.transfer(msg.sender, uint256(tokensToBuy));
     emit Bought(tokensToBuy, msg.sender);
   }
 
@@ -47,10 +46,9 @@ contract Shop {
     return token.balanceOf(address(this));
   }
 
-  function withdraw(uint256 amount) external onlyOwner returns (bool) {
+  function withdraw(uint256 amount) external onlyOwner {
     require(amount < token.balanceOf(msg.sender));
     address payable to = payable(msg.sender);
-    to.transfer(token.balanceOf(msg.sender));
-    return true;
+    to.transfer(tokenBalance());
   }
 }

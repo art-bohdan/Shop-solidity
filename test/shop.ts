@@ -19,7 +19,7 @@ describe("Shop", function () {
     const [owner, buyer] = await ethers.getSigners()
 
     const MShop = await ethers.getContractFactory("Shop", owner)
-    const shop = await MShop.deploy()
+    const shop = await MShop.deploy("Shop", "SP", 18, 20)
     await shop.deployed()
 
     const erc20 = new ethers.Contract(await shop.token(), tokenJSON.abi, owner)
